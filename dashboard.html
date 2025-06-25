@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>پنل کاربری کدبرگ</title>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'Vazir', sans-serif; }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex">
+
+  <!-- Sidebar -->
+  <aside class="w-64 bg-white shadow-xl p-6 space-y-6 rounded-e-xl">
+    <div class="text-center border-b pb-4 transition delay-150 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110 hover:text-blue-800">
+      <h2 class="text-3xl font-extrabold text-blue-600">کدبرگ</h2>
+      <p class="text-sm text-gray-500 mt-1">پنل کاربری</p>
+    </div>
+    <nav class="space-y-3">
+      <a href="#" id="dashboardLink" class="block py-2 px-4 rounded-lg bg-blue-100 text-blue-700 font-semibold hover:bg-blue-200 transition delay-150 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110 hover:text-blue-800">داشبورد</a>
+      <a href="#" id="coursesLink" class="block py-2 px-4 rounded-lg hover:bg-blue-50 text-gray-700 transition delay-150 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110 hover:text-blue-800">دوره‌های من</a>
+      <a href="#" id="ordersLink" class="block py-2 px-4 rounded-lg hover:bg-blue-50 text-gray-700 transition delay-150 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110 hover:text-blue-800">سفارشات</a>
+      <a href="#" id="profileLink" class="block py-2 px-4 rounded-lg hover:bg-blue-50 text-gray-700 transition delay-150 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110 hover:text-blue-800">پروفایل</a>
+      <a href="login.html" id="logoutLink" class="block py-2 px-4 rounded-lg text-red-600 hover:bg-red-100 transition delay-150 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110 hover:text-blue-800">خروج</a>
+    </nav>
+  </aside>
+
+  <!-- Main -->
+  <main class="flex-1 p-6 space-y-6">
+
+    <section id="userDashboard" class="bg-white p-6 rounded-2xl shadow-md transition delay-50 duration-300 ease-in-out hover:-translate-y-1">
+      <h3 class="text-2xl font-bold text-gray-800 mb-4">داشبورد</h3>
+      <p class="text-gray-600">خوش آمدید به پنل کاربری تان! در اینجا می‌توانید اطلاعات پروفایل خود را مشاهده و ویرایش کنید، دوره‌ها و سفارشات خود را مدیریت کنید.</p>
+    </section>
+
+    <section id="userCourses" class="bg-white p-6 rounded-2xl shadow-md hidden transition delay-50 duration-300 ease-in-out hover:-translate-y-1"></section>
+    <section id="userOrders" class="bg-white p-6 rounded-2xl shadow-md hidden transition delay-50 duration-300 ease-in-out hover:-translate-y-1"></section>
+    <section id="userProfile" class="bg-white p-6 rounded-2xl shadow-md hidden transition delay-50 duration-300 ease-in-out hover:-translate-y-1"></section>
+
+  </main>
+
+  <script>
+    async function fetchUserData() {
+      try {
+        const response = await axios.get('/api/user');
+        const user = response.data;
+
+        // پروفایل
+        document.getElementById('userProfile').innerHTML = `
+          <h3 class="text-2xl font-bold text-gray-800 mb-4">پروفایل کاربر</h3>
+          <div class="space-y-2 text-gray-600">
+            <p><span class="font-semibold">نام:</span> ${user.name}</p>
+            <p><span class="font-semibold">ایمیل:</span> ${user.email}</p>
+          </div>
+        `;
+
+        // دوره‌ها
+        let coursesHTML = `<h3 class="text-2xl font-bold text-gray-800 mb-4">دوره‌های من</h3>`;
+        if (user.courses.length > 0) {
+          coursesHTML += `<p class="text-gray-600 mb-2">شما ${user.courses.length} دوره ثبت‌نام کرده‌اید:</p><ul class="list-disc pr-5 space-y-1 text-gray-700">`;
+          user.courses.forEach(course => {
+            coursesHTML += `<li>${course}</li>`;
+          });
+          coursesHTML += `</ul>`;
+        } else {
+          coursesHTML += `<p class="text-gray-600">شما هیچ دوره‌ای ثبت‌نام نکرده‌اید.</p>`;
+        }
+        document.getElementById('userCourses').innerHTML = coursesHTML;
+
+        // سفارشات
+        document.getElementById('userOrders').innerHTML = `
+          <h3 class="text-2xl font-bold text-gray-800 mb-4">سفارشات من</h3>
+          <p class="text-gray-600">${user.orders.length > 0 ? 'شما سفارشاتی دارید.' : 'در حال حاضر هیچ سفارشی ندارید.'}</p>
+        `;
+
+      } catch (err) {
+        console.error("خطا در دریافت اطلاعات:", err);
+        alert("مشکلی در دریافت اطلاعات کاربر وجود دارد.");
+      }
+    }
+
+    function showSection(id) {
+      const sections = ['userDashboard', 'userCourses', 'userOrders', 'userProfile'];
+      sections.forEach(section => {
+        document.getElementById(section).classList.toggle('hidden', section !== id);
+      });
+    }
+
+    // اتصال لینک‌ها
+    document.getElementById('dashboardLink').addEventListener('click', () => showSection('userDashboard'));
+    document.getElementById('coursesLink').addEventListener('click', () => showSection('userCourses'));
+    document.getElementById('ordersLink').addEventListener('click', () => showSection('userOrders'));
+    document.getElementById('profileLink').addEventListener('click', () => showSection('userProfile'));
+
+    // شروع
+    fetchUserData().then(() => showSection('userDashboard'));
+  </script>
+</body>
+</html>
